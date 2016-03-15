@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd">
+
+	<!-- 创建bean实例 -->
+
+	<!-- 使用构造器来创建bean实例 -->
+	<bean id="helloBean" class="com.spring.bean.HelloBean"/>
+	<bean id="cal1" class="java.util.GregorianCalendar"/>
+	<!-- 使用静态工厂方法来创建bean实例 -->
+	<bean id="cal2" class="java.util.Calendar" factory-method="getInstance"/>
+	<!-- 使用实例工厂方法来创建bean实例 -->
+	<bean id="cal3" class="java.util.GregorianCalendar"/>
+	<bean id="date1" factory-bean="cal3" factory-method="getTime"/>
+
+
+	<!-- DI依赖注入（xml配置方式） -->
+
+	<!-- set方式注入 -->
+	<bean id="computer" class="com.spring.bean.Computer">
+		<property name="name" value="联想T40"/>
+		<property name="mainboard" value="微星"/>
+		<property name="cpu" value="Intel"/>
+		<property name="price" value="10000"/>
+	</bean>
+
+	<!-- 构造器注入 -->
+	<bean id="phone" class="com.spring.bean.MobilePhone">
+		<constructor-arg index="0" value="Iphone 7"/>
+		<constructor-arg index="1" value="ARM"/>
+		<constructor-arg index="2" value="4G"/>
+		<constructor-arg index="3" value="10000"/>
+	</bean>
+
+
+	<!-- set方法注入 -->
+	<bean id="stu1" class="com.spring.bean.Student">
+		<property name="computer" ref="computer"/>
+		<property name="phone" ref="phone"/>
+	</bean>
+
+	<!-- 构造器注入 -->
+	<bean id="stu2" class="com.spring.bean.Student">
+		<constructor-arg index="0" ref="computer"/>
+		<constructor-arg index="1" ref="phone"/>
+	</bean>
+
+	<!-- 自动装配
+    byName:容器会查找配置文件当中与属性名一致的bean，接下来，会调用set方法完成注入。
+    byType:容器会查找配置文件当中，与属性类型一致的bean,接下来，会调用set方法完成注入。
+    constructor:容器会查找配置文件，与构造器当中的参数类型一致的bean，然后调用构造器来完成注入。
+     -->
+	<bean id="stu3" class="com.spring.bean.Student" autowire="byType"/>
+
+	<!-- DI依赖注入（标注方式） -->
+	<!-- 容器启动之后，会扫描指定包及子包下面的所有的类，如果该类包含了一些特定的标注，则容器会将这些类(bean)纳入容器进行管理(相当于在配置文件当中配置了<bean>)-->
+	<context:component-scan base-package="com.spring.bean"/>
+
+	<!-- 注入集合 -->
+	<bean id="mb1" class="com.spring.bean.MessageBean">
+		<property name="langs">
+			<list>
+				<value>php</value>
+				<value>java</value>
+				<value>python</value>
+				<value>python</value>
+			</list>
+		</property>
+		<property name="cities">
+			<set>
+				<value>北京</value>
+				<value>上海</value>
+				<value>北京</value>
+			</set>
+		</property>
+		<property name="scores">
+			<map>
+				<entry key="english" value="90"/>
+				<entry key="math" value="100"/>
+			</map>
+		</property>
+		<property name="dbinfo">
+			<props>
+				<prop key="username">Tom</prop>
+				<prop key="password">Tiger</prop>
+			</props>
+		</property>
+	</bean>
+	<!--可以将集合当作一个bean来配置命名空间:为了区分同名的元素而设置的一个字符串。-->
+	<!-- 将list当作一个bean来配置 -->
+	<util:list id="language">
+		<value>java</value>
+		<value>c++</value>
+		<value>php</value>
+	</util:list>
+	<!-- 将set当作一个bean来配置 -->
+	<util:set id="citiesInfo">
+		<value>武汉</value>
+		<value>长沙</value>
+	</util:set>
+	<!-- 将map当作一个bean来配置 -->
+	<util:map id="scoreInfo">
+		<entry key="english" value="80"/>
+		<entry key="math" value="90"/>
+	</util:map>
+	<!-- 将properties当作一个bean来配置 -->
+	<!--
+    <util:properties id="db">
+        <prop key="username">Tom</prop>
+        <prop key="password">Tiger</prop>
+    </util:properties>
+     -->
+	<!-- 将properties当作一个bean来配置,
+    会读取指定位置的properties文件的内容 -->
+	<util:properties id="db" location="classpath:db.properties"/>
+	<bean id="mb2" class="com.spring.bean.MessageBean">
+		<property name="langs" ref="language"/>
+		<property name="cities" ref="citiesInfo"/>
+		<property name="scores" ref="scoreInfo"/>
+		<property name="dbinfo" ref="db"/>
+	</bean>
+	<!-- 使用spring表达式来注入(spring表达式可以访问bean的属性)-->
+	<bean id="teacher" class="com.spring.bean.Teacher">
+		<property name="name" value="John"/>
+		<property name="cat">
+			<!-- 也可以将一个bean的配置嵌入到另外一个bean的配置里面。这个bean只能被外层的bean访问 -->
+			<bean class="com.spring.bean.Cat">
+				<property name="name" value="Tom"/>
+			</bean>
+		</property>
+	</bean>
+	<bean id="demoBean"
+		  class="com.spring.bean.DemoBean">
+		<property name="language"
+				  value="#{language[0]}"/>
+		<property name="pageSize"
+				  value="#{db.pagesize}"/>
+		<property name="score"
+				  value="#{scoreInfo.english}"/>
+		<property name="name"
+				  value="#{teacher.cat.name}"/>
+	</bean>
+</beans>
